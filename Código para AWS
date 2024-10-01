@@ -1,1 +1,122 @@
+import json
+import boto3
+from botocore.exceptions import ClientError
+
+# Inicializar clientes AWS
+dynamodb = boto3.resource('dynamodb')
+stepfunctions = boto3.client('stepfunctions')
+
+# Nome da tabela DynamoDB
+TABLE_NAME = 'PedidosDelivery'
+
+# Função para criar uma nova entrada de pedido no DynamoDB
+def criar_pedido(event):
+    pedido_id = event['pedido_id']
+    item = {
+        'pedido_id': pedido_id,
+        'status': 'Recebido',
+        'detalhes': event['detalhes'],
+        'pagamento_processado': False
+    }
+
+    # Gravar o pedido no DynamoDB
+    tabela = dynamodb.Table(TABLE_NAME)
+    tabela.put_item(Item=item)
+    
+    return {
+        'statusCode': 200,
+        'body': json.dumps(f'Pedido {pedido_id} criado com sucesso.')
+    }
+
+# Função para validar o pedido
+def validar_pedido(event):
+    pedido_id = event['pedido_id']
+    
+    # Simulação de validação (aqui você pode implementar sua lógica)
+    if 'detalhes' in event and event['detalhes']:
+        return {
+            'statusCode': 200,
+            'pedido_id': pedido_id,
+            'validado': True
+        }
+    else:
+        raise Exception(f'Pedido {pedido_id} inválido.')
+
+# Função para processar o pagamento
+def processar_pagamento(event):
+    pedido_id = event['pedido_id']
+    
+    # Simulação de processamento de pagamento
+    try:
+        # Aqui você implementaria a lógica de integração com um serviço de pagamento
+        # Exemplo: chamando uma API de pagamento
+        print(f'Processando pagamento para o pedido {pedido_id}...')
+        # Atualizar o status do pedido para 'Pagamento Processado'
+        
+        tabela = dynamodb.Table(TABLE_NAME)
+        tabela.update_item(
+            Key={'pedido_id': pedido_id},
+            UpdateExpression='SET pagamento_processado = :val, #status = :status',
+            ExpressionAttributeValues={
+                ':val': True,
+                ':status': 'Pagamento Processado'
+            },
+            ExpressionAttributeNames={
+                '#status': 'status'
+            }
+        )
+        
+        return {
+            'statusCode': 200,
+            'pedido_id': pedido_id,
+            'pagamento_processado': True
+        }
+    except Exception as e:
+        raise Exception(f'Erro ao processar pagamento para o pedido {pedido_id}: {str(e)}')
+
+# Função para atualizar o status da entrega
+def atualizar_status(event):
+    pedido_id = event['pedido_id']
+    
+    # Simulação de atualização de status de entrega
+    tabela = dynamodb.Table(TABLE_NAME)
+    tabela.update_item(
+        Key={'pedido_id': pedido_id},
+        UpdateExpression='SET #status = :status',
+        ExpressionAttributeValues={
+            ':status': 'Entregue'
+        },
+        ExpressionAttributeNames={
+            '#status': 'status'
+        }
+    )
+    
+    return {
+        'statusCode': 200,
+        'pedido_id': pedido_id,
+        'status': 'Entregue'
+    }
+
+# Função principal que orquestra as etapas do pedido
+def lambda_handler(event, context):
+    try:
+        # Criar pedido
+        criar_response = criar_pedido(event)
+        pedido_id = json.loads(criar_response['body'])['pedido_id']
+        
+        # Validar pedido
+        validacao_response = validar_pedido({'pedido_id': pedido_id, 'detalhes': event['detalhes']})
+        
+        if validacao_response['validado']:
+            # Processar pagamento
+            pagamento_response = processar_pagamento({'pedido_id': pedido_id})
+            if pagamento_response['pagamento_processado']:
+                # Atualizar status
+                status_response = atualizar_status({'pedido_id': pedido_id})
+                return status_response
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'body': json.dumps(str(e))
+        }
 
