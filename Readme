@@ -17,3 +17,18 @@ Este projeto é um Assistente de Delivery que utiliza AWS Step Functions e servi
 1. Configure seu ambiente AWS.
 2. Implemente as funções Lambda usando o código fornecido.
 3. Configure o DynamoDB e o API Gateway conforme necessário.
+
+
+
+Explicação do Código
+Importação de Bibliotecas: O código utiliza boto3, que é a biblioteca da AWS para Python, permitindo interação com serviços da AWS.
+
+Inicialização de Clientes: Inicializa os clientes para DynamoDB e Step Functions.
+
+Funções:
+
+criar_pedido: Cria um novo pedido no DynamoDB.
+validar_pedido: Valida os detalhes do pedido.
+processar_pagamento: Simula o processamento do pagamento e atualiza o status do pedido.
+atualizar_status: Atualiza o status do pedido para "Entregue".
+Função Principal: A função lambda_handler é a função de entrada para o AWS Lambda. Ela coordena a execução das funções acima, lidando com a criação do pedido, validação, processamento de pagamento e atualização do status.
