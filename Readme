@@ -1,1 +1,19 @@
 Desafio proposto no Curso de Engenharia de Prompt
+
+# Assistente de Delivery
+
+Este projeto é um Assistente de Delivery que utiliza AWS Step Functions e serviços da AWS para orquestrar pedidos de entrega.
+
+## Funcionalidades
+
+- Receber pedidos
+- Validar pedidos
+- Processar pagamentos
+- Atualizar status dos pedidos
+- Solicitar feedback dos clientes
+
+## Como Usar
+
+1. Configure seu ambiente AWS.
+2. Implemente as funções Lambda usando o código fornecido.
+3. Configure o DynamoDB e o API Gateway conforme necessário.
